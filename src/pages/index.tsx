@@ -1,114 +1,143 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import {useEffect} from "react";
+/* TODO
+  -non hardcoded url
+  -security,https for video
+  -programatically set video type
+  -generic poster
+  -generic fallback link
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+recall i have vid streaming working:
+  <source src="http://192.168.40.8:3000/video" type="video/mp4" />
+*/
 
 export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  // TODO - replace dom calls w/ refs
+  // https://react.dev/learn/manipulating-the-dom-with-refs
+  // and next section too
+  useEffect(() => {
+    const video = document.getElementById('video')
+    
+    // check if the browser supports <video>
+    if (video.canPlayType) {
+      // setup custom video controls
+      const videoContainer = document.getElementById('videoContainer')
+      const videoControls = document.getElementById('video-controls')
+    
+      // disable browser's default controls
+      video.controls = false
+    
+      // display user defined video controls
+      videoControls.style.display = 'block'
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      const playPause = document.getElementById("play-pause")
+      const stop = document.getElementById("stop")
+      const mute = document.getElementById("mute")
+      const volInc = document.getElementById("vol-inc")
+      const volDec = document.getElementById("vol-dec")
+      const progress = document.getElementById("progress")
+      const fullscreen = document.getElementById("fs")
+
+      // hide fullscreen buttoon if fullscreen api not enabled
+      if (!document?.fullscreenEnabled) fullscreen.style.display = 'none'
+
+      function alterVolume(dir) {
+        const currentVolume = Math.floor(video.volume * 10) / 10
+
+        if (dir === '+' && currentVolume < 1) video.volume += 0.1
+        else if (dir === '-' && currentVolume > 0) video.volume -= 0.1
+      }
+
+      function setFullscreenData(state) {
+        videoContainer.setAttribute('data-fullscreen', !!state)
+      }
+
+      playPause.addEventListener('click', e => {
+        if (video.paused || video.ended) video.play()
+        else video.pause()
+      })
+
+      stop.addEventListener('click', e => {
+        video.pause()
+        video.currentTime = 0
+        progress.value = 0
+      })
+
+      mute.addEventListener('click', e => {
+        video.muted = !video.muted
+      })
+
+      volInc.addEventListener('click', e => {
+        alterVolume('+')
+      })
+      
+      volDec.addEventListener('click', e => {
+        alterVolume('-')
+      })
+
+      video.addEventListener('loadedmetadata', () => {
+        // set the progress bar's maximum value (length of video)
+        // duration available for read on loadedmetadata event
+        progress.setAttribute('max', video.duration)
+      })
+
+      video.addEventListener("timeupdate", () => {
+        // some mobile browsers don't update loadedmatadata like desktop browsers
+        // video duration set at this point in most mobile browsers
+        if (!progress.getAttribute('max')) progress.setAttribute('max', video.duration)
+
+        progress.value = video.currentTime;
+      })
+
+      // Add skip ahead
+      progress.addEventListener('click', e => {
+        const rect = progress.getBoundingClientRect()
+        const pos = (e.pageX - rect.left) / progress.offsetWidth
+        video.currentTime = pos * video.duration
+      })
+
+      fullscreen.addEventListener('click', e => {
+        if (document.fullscreenElement !== null) { // in fullscreen mode
+          document.exitFullscreen()
+          setFullscreenData(false)
+        } else {
+          videoContainer.requestFullscreen()
+          setFullscreenData(true)
+        }
+      })
+
+      document.addEventListener('fullscreenchange', e => {
+        setFullscreenData(!!document.fullscreenElement)
+      })
+    }
+  }, [])
+
+  return (
+    <figure id="videoContainer">
+      <video
+        id="video"
+        controls
+        width="620"
+        poster="https://peach.blender.org/wp-content/uploads/title_anouncement.jpg?x11217"
+      >
+        <source src="/big_buck_bunny_720p_surround.mp4" type="video/mp4" />
+  
+        have other fallbacks w/ different media types of video, ex: .ogg
+        fallback:<a href="https://archive.org/details/BigBuckBunny_124">here</a>.
+      </video>
+      <ul id="video-controls" class="controls">
+        <li><button id="play-pause" type="button">Play/Pause</button></li>
+        <li><button id="stop" type="button">Stop</button></li>
+        <li class="progress">
+          <progress id="progress" value="0" min="0" />
+        </li>
+        <li><button id="mute" type="button">Mute/Unmute</button></li>
+        <li><button id="vol-inc" type="button">Vol+</button></li>
+        <li><button id="vol-dec" type="button">Vol-</button></li>
+        <li><button id="fs" type="button">Fullscreen</button></li>
+      </ul>
+      <figcaption>
+        &copy; mozilla
+      </figcaption>
+    </figure>
   );
 }
