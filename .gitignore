@@ -41,4 +41,4 @@ yarn-error.log*
 next-env.d.ts
 
 # media
-.mp4
+*.mp4
